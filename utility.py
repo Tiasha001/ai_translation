@@ -43,15 +43,26 @@ class Tokenize:
         start = 0
         for i in range(self.__file_length):
             l= len(self.__token.encode(self.__file_data[i]))
+            
+            # 1. if the one element contents words of more than or equals to the chunk size then 
+            # then particular element should be returned.
+            # 2. if it reaches to file length then also same is applicable.
+            if (l >= self.__token_length)  or (i==self.__file_length-1):
+                print(start, i+1)
+                yield [", ".join(self.__file_data[start:i+1])]
+                start = i+1
+                l = 0
+                count = 0
+                
             count+=l
-            if count>self.__token_length or (i==self.__file_length-1):
+            if count>self.__token_length:
                 print(start, i)
                 yield [", ".join(self.__file_data[start:i])]
                 start = i 
                 count = 0 
             
-            
-            
+
+                                
 class FileDataExtractor():
     """
     Extracts data from different file types.
