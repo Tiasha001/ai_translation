@@ -3,7 +3,7 @@ import os
 from config.openai_config import OPENAI_MODEL, OPENAI_INPUT_TOKEN_LENGTH
 
 from file_processor import PdfProcessor, DocProcessor
-from translation import OpenAITranslate, GoogleTranslate
+from translation import OpenAITranslate, GoogleTranslate, GoogleCloudtranslate
 from config.message_config import (
     InvalidInputMessages, FileTypes, TranlatorTypes,
     DefaultLanguages
@@ -130,7 +130,7 @@ class TranslationServiceProvider():
         
         self.__processor_mapping = {
             "openai":OpenAITranslate,
-            "google":GoogleTranslate
+            "google":GoogleCloudtranslate
         }
         self.src_language=src_language
         self.target_language=target_language

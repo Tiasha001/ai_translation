@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 
 from openai import OpenAI, RateLimitError, AsyncOpenAI
 from googletrans import Translator
+from google.cloud import translate_v2 as translate
 from tenacity import retry, retry_if_exception_type, wait_fixed
 
 from config.openai_config import (
@@ -143,7 +144,7 @@ class OpenAITranslate(Translation):
 class GoogleTranslate(Translation):
     """Subclass of Translation for translation using OpenAI.
     * Attributes:
-        - __g_translator (OpenAI): google client object.
+        - __g_translator (google client): google client object.
                 
     * parent Attribute - 
         - src_language (str): Source language code.
@@ -182,3 +183,51 @@ class GoogleTranslate(Translation):
             return None
 
        
+       
+class GoogleCloudtranslate(Translation):
+    """Subclass of Translation for translation using OpenAI.
+    * Attributes:
+        - __g_translator (google client): google client object.
+                
+    * parent Attribute - 
+        - src_language (str): Source language code.
+        - target_language (str): Target language code.
+        - input_text (str): Text to be translated."""
+    
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__g_translator = translate.Client()
+        self.src_lang = self.get_language_code(self._Translation__src_language)
+        self.desc_lang = self.get_language_code(self._Translation__target_language)
+       
+    def get_language_code(self, language:str):
+        lang_code_list = self.__g_translator.get_languages()
+        target_obj = list(filter(lambda person: person['name'] == language.title(), lang_code_list))
+        if not target_obj:
+            print(f"Translation is not available for {language}")
+            return
+        return target_obj[0]["language"]
+                 
+        
+    def translate(self): 
+        """Translates text into the target language.
+
+        Target must be an ISO 639-1 language code.
+        See https://g.co/cloud/translate/v2/translate-reference#supported_languages
+        """
+
+        if isinstance(self._Translation__input_text, bytes):
+            self._Translation__input_text = self._Translation__input_text.decode("utf-8")
+
+        # Text can also be a sequence of strings, in which case this method
+        # will return a sequence of results for each text.
+        result = self.__g_translator.translate(
+                self._Translation__input_text, 
+                target_language=self.desc_lang, 
+                source_language=self.src_lang
+        )
+
+        return result["translatedText"]
+
+  
